@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CultureApp">
+<meta name="theme-color" content="#F2F2F7">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>CultureApp</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F2F2F7;min-height:100vh;overflow-x:hidden;padding-bottom:84px}
+button{font-family:inherit;cursor:pointer}
+input,textarea,select{font-family:inherit}
+
+/* ── SCREENS ── */
+.screen{display:none}
+.screen.active{display:block}
+
+/* ── SHARED ── */
+.back-btn{background:none;border:none;color:#5B8CDB;font-size:1rem;font-weight:600;padding:0;margin-bottom:6px}
+.page-title{font-size:2.2rem;font-weight:700;color:#4A4A4F;letter-spacing:-0.02em}
+.card{background:white;border-radius:16px;padding:16px;box-shadow:0 1px 6px rgba(0,0,0,0.07)}
+.section-label{font-size:0.8rem;font-weight:700;color:#8E8E93;text-transform:uppercase;letter-spacing:0.08em;padding:20px 16px 8px}
+
+/* ── HOME ── */
+#screen-home header{background:#F2F2F7;padding:52px 20px 16px;display:flex;align-items:flex-end;justify-content:space-between}
+.cat-list{background:white;border-radius:16px;margin:0 16px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,0.07)}
+.cat-row{padding:13px 16px;display:flex;align-items:center;gap:12;border-bottom:1px solid #F2F2F7;cursor:pointer;gap:12px}
+.cat-row:last-child{border-bottom:none}
+.cat-row:hover{background:#FAFAFA}
+.cat-icon-tile{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.cat-name{font-size:0.95rem;font-weight:600;color:#4A4A4F}
+.cat-sub{font-size:0.72rem;color:#8E8E93;margin-top:1px}
+.cat-chevron{color:#C7C7CC;font-size:1.1rem;margin-left:auto}
+
+/* challenge */
+.challenge-bar-track{height:10px;background:#F2F2F7;border-radius:100px;overflow:hidden}
+.challenge-bar-fill{height:100%;border-radius:100px;transition:width 0.8s}
+
+/* activity rows */
+.activity-row{padding:11px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #F2F2F7}
+.activity-row:last-child{border-bottom:none}
+
+/* quick stats */
+.quick-stats{display:flex;gap:10px;padding:12px 16px 0}
+.stat-tile{flex:1;background:white;border-radius:14px;padding:12px 10px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.06);cursor:pointer}
+.stat-n{font-size:1.5rem;font-weight:700}
+.stat-l{font-size:0.65rem;color:#8E8E93;margin-top:2px}
+
+/* ── CATEGORY SCREEN ── */
+#screen-cat header{background:white;padding:52px 16px 0;border-bottom:1px solid #F2F2F7;position:sticky;top:0;z-index:20}
+.cat-header-inner{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.seg-tabs{display:flex;background:#F2F2F7;border-radius:12px;padding:3px;gap:3px;margin-bottom:1px}
+.seg-tab{flex:1;padding:9px 10px;border-radius:10px;border:none;background:transparent;font-weight:400;color:#8E8E93;font-size:0.85rem;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.15s}
+.seg-tab.active{background:white;font-weight:700;color:#4A4A4F;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+.seg-badge{border-radius:100px;padding:1px 7px;font-size:0.65rem;font-weight:700;color:white;background:#C7C7CC}
+.seg-tab.active .seg-badge{background:var(--cat-color)}
+
+/* covers grid */
+.covers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 14px;padding:16px}
+.cover-item{cursor:pointer}
+.cover-item-title{font-size:0.68rem;font-weight:600;color:#4A4A4F;line-height:1.3;margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cover-item-author{font-size:0.6rem;color:#8E8E93;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cover-item-stars{font-size:0.58rem;color:#FFB800;letter-spacing:1px;margin-top:1px}
+.month-group{margin-bottom:24px}
+.month-header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.month-label{font-size:0.78rem;font-weight:700;color:#8E8E93;text-transform:uppercase;letter-spacing:0.08em}
+.month-line{flex:1;height:1px;background:#E5E5EA}
+.month-count{font-size:0.7rem;font-weight:600}
+.empty-state{text-align:center;padding:60px 20px}
+.empty-icon{font-size:2.5rem;margin-bottom:12px;opacity:0.3}
+.empty-text{color:#8E8E93;font-size:0.9rem;margin-bottom:16px}
+.empty-btn{padding:10px 22px;border-radius:100px;color:white;border:none;font-size:0.88rem;font-weight:600}
+
+/* ── STATS SCREEN ── */
+#screen-stats header{background:#F2F2F7;padding:52px 16px 10px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px}
+.stats-tile{background:white;border-radius:16px;padding:16px 14px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.stats-tile-n{font-size:2rem;font-weight:700}
+.stats-tile-l{font-size:0.72rem;color:#8E8E93;margin-top:2px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-label{font-size:0.8rem;color:#3C3C43;width:90px}
+.bar-track{flex:1;height:8px;background:#F2F2F7;border-radius:100px;overflow:hidden}
+.bar-fill{height:100%;border-radius:100px;transition:width 0.7s}
+.bar-val{font-size:0.78rem;color:#8E8E93;width:20px;text-align:right}
+.tags-cloud{display:flex;flex-wrap:wrap;gap:7px}
+.tag-chip{padding:5px 12px;border-radius:100px;background:#F2F2F7;font-size:0.78rem;color:#3C3C43}
+
+/* ── CALENDAR ── */
+.cal-grid-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
+.cal-day-name{text-align:center;font-size:0.6rem;color:#8E8E93;font-weight:600;padding:2px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-cell{aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;border:1.5px solid transparent}
+.cal-cell-num{font-size:0.65rem}
+.cal-book-dot{position:absolute;bottom:1px;right:1px;font-size:0.38rem;line-height:1;letter-spacing:-1px}
+.day-picker{display:flex;flex-wrap:wrap;gap:6px}
+.day-btn{width:28px;height:28px;border-radius:6px;border:none;font-size:0.65rem;font-weight:600;transition:all 0.15s}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(242,242,247,0.94);backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,0.1);display:flex;padding:8px 0 20px;z-index:100}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;padding:4px 0}
+.bnav-ico{font-size:1.3rem;transition:opacity 0.15s}
+.bnav-lbl{font-size:0.65rem;font-weight:600;color:#8E8E93;transition:color 0.15s}
+.bnav-btn.active .bnav-lbl{color:#4A4A4F}
+
+/* ── FAB ── */
+.fab{width:34px;height:34px;border-radius:50%;background:#4A4A4F;color:white;border:none;font-size:1.4rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.fab-sm{width:32px;height:32px;font-size:1.3rem}
+
+/* ── OVERLAY / SHEET ── */
+.overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.38);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.sheet{background:white;border-radius:20px 20px 0 0;width:100%;max-width:430px;max-height:94vh;overflow-y:auto;padding:0 20px 40px}
+.sheet-handle{width:40px;height:4px;border-radius:100px;background:#E0E0E0;margin:12px auto 20px}
+.sheet-title{font-size:1.5rem;font-weight:700;color:#4A4A4F;margin-bottom:22px}
+.form-label{display:block;font-size:0.7rem;font-weight:600;color:#8E8E93;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.form-row{margin-bottom:14px}
+.form-input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #E5E5EA;background:#F9F9F9;font-size:0.95rem;color:#4A4A4F;outline:none}
+.form-input:focus{border-color:#5B8CDB}
+textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
+.seg-group{display:flex;background:#F2F2F7;border-radius:12px;padding:3px;gap:3px}
+.seg-opt{flex:1;padding:9px 10px;border-radius:10px;border:none;background:transparent;font-weight:400;color:#8E8E93;font-size:0.85rem;transition:all 0.15s}
+.seg-opt.active{background:white;font-weight:600;color:#4A4A4F;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+.cat-pick{display:flex;gap:8px}
+.cat-opt{flex:1;padding:10px 6px;border-radius:12px;border:2px solid #E5E5EA;background:white;font-size:0.78rem;font-weight:600;color:#8E8E93;transition:all 0.15s;text-align:center}
+.star-row{display:flex;gap:8px}
+.star-btn{font-size:1.6rem;background:none;border:none;color:#D1D1D6;padding:0;transition:color 0.1s}
+.star-btn.lit{color:#FFB800}
+.tag-field{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border:1px solid #E5E5EA;border-radius:12px;background:#F9F9F9;min-height:44px;align-items:center;cursor:text}
+.tag-pill{display:flex;align-items:center;gap:3px;background:#EEF4FF;border-radius:100px;padding:3px 10px;font-size:0.75rem;color:#1A3A6B}
+.tag-pill button{background:none;border:none;color:#5B8CDB;font-size:0.8rem;padding:0 0 0 2px;line-height:1}
+#tagInput{border:none;outline:none;background:transparent;font-size:0.85rem;color:#4A4A4F;min-width:80px;flex:1;padding:2px 4px}
+.form-actions{display:flex;gap:10px;margin-top:20px}
+.btn-cancel{padding:14px 20px;border-radius:14px;background:#F2F2F7;border:none;font-size:0.9rem;font-weight:600;color:#8E8E93}
+.btn-save{flex:1;padding:14px;border-radius:14px;background:#4A4A4F;color:white;border:none;font-size:0.9rem;font-weight:600}
+.btn-done-green{width:100%;padding:12px 0;border-radius:12px;background:#27AE60;color:white;border:none;font-size:0.95rem;font-weight:700;box-shadow:0 2px 10px rgba(39,174,96,0.3)}
+.btn-skip-green{width:100%;padding:9px 0;border-radius:10px;background:#E8F8EE;color:#27AE60;border:none;font-size:0.82rem;font-weight:600}
+.btn-cancel-sm{width:100%;padding:8px 0;border-radius:10px;background:none;color:#8E8E93;border:none;font-size:0.78rem;margin-top:6px}
+
+/* detail */
+.detail-sheet{max-height:88vh}
+.detail-top{padding:20px 20px 0;display:flex;gap:16px;align-items:flex-start}
+.detail-tag{padding:4px 10px;border-radius:100px;font-size:0.72rem;font-weight:600}
+.detail-stars{font-size:1.1rem;color:#FFB800;letter-spacing:2px}
+.detail-note{margin:16px 20px 0;padding:14px;background:#F9F9F9;border-radius:12px;font-style:italic;font-size:0.88rem;color:#3C3C43;line-height:1.6}
+.detail-actions{display:flex;gap:10px;padding:16px 20px 0}
+.btn-edit{flex:1;padding:12px;border-radius:12px;background:#F2F2F7;border:none;font-size:0.88rem;font-weight:600;color:#4A4A4F}
+.btn-del{flex:1;padding:12px;border-radius:12px;background:#FEEAEA;border:none;font-size:0.88rem;font-weight:600;color:#E53935}
+
+/* rating picker in detail */
+.rating-picker{margin:18px 20px 0;padding:16px;background:#F9F9F9;border-radius:14px;border:1px solid #E5E5EA}
+.rating-picker-stars{display:flex;justify-content:center;gap:10px;margin-bottom:12px}
+.rating-star{font-size:2rem;background:none;border:none;color:#D1D1D6;padding:0}
+.rating-star:hover{color:#FFB800;transform:scale(1.2)}
+
+/* cover canvas */
+.cover-box{border-radius:9px;overflow:hidden;position:relative;box-shadow:3px 4px 14px rgba(0,0,0,0.28);flex-shrink:0}
+.cover-spine{position:absolute;left:0;top:0;bottom:0;width:4px;background:rgba(0,0,0,0.22)}
+.cover-icon{position:absolute;top:7px;right:7px;opacity:0.6}
+.cover-text{position:absolute;bottom:0;left:0;right:0;padding:6px 8px 8px;background:linear-gradient(transparent,rgba(0,0,0,0.55));color:white;font-family:Georgia,serif;font-weight:700;font-size:0.58rem;line-height:1.25;text-shadow:0 1px 3px rgba(0,0,0,0.6)}
+.cover-box.lg .cover-text{font-size:0.72rem}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     HOME SCREEN
+═══════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+  <header>
+    <div class="page-title">Biblioteka</div>
+    <button class="fab" onclick="openAdd('book','want')">+</button>
+  </header>
+
+  <div class="cat-list" id="catList"></div>
+
+  <!-- challenge -->
+  <div style="margin:12px 16px 0" class="card" id="challengeCard"></div>
+
+  <!-- activity -->
+  <div id="activitySection"></div>
+
+  <!-- quick stats -->
+  <div class="quick-stats">
+    <div class="stat-tile" onclick="goTo('stats')">
+      <div class="stat-n" id="qs-done" style="color:#27AE60">0</div>
+      <div class="stat-l">Ukończone</div>
+    </div>
+    <div class="stat-tile" onclick="goTo('stats')">
+      <div class="stat-n" id="qs-want" style="color:#E67E22">0</div>
+      <div class="stat-l">Na liście</div>
+    </div>
+    <div class="stat-tile" onclick="goTo('stats')">
+      <div class="stat-n" id="qs-avg" style="color:#FFB800">—</div>
+      <div class="stat-l">Śr. ocena</div>
+    </div>
+  </div>
+  <div style="height:20px"></div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     CATEGORY SCREEN
+═══════════════════════════════════════ -->
+<div id="screen-cat" class="screen">
+  <header>
+    <button class="back-btn" onclick="goTo('home')">‹ Biblioteka</button>
+    <div class="cat-header-inner">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="cat-icon-big" style="font-size:1.6rem"></span>
+        <span id="cat-label-big" style="font-size:1.5rem;font-weight:700;color:#4A4A4F;letter-spacing:-0.01em"></span>
+      </div>
+      <button class="fab fab-sm" id="cat-add-btn" onclick="openAdd(currentCat, currentCatTab)">+</button>
+    </div>
+    <div class="seg-tabs">
+      <button class="seg-tab active" id="tab-want" onclick="switchCatTab('want')">
+        <span id="tab-want-label"></span>
+        <span class="seg-badge" id="tab-want-count">0</span>
+      </button>
+      <button class="seg-tab" id="tab-done" onclick="switchCatTab('done')">
+        <span id="tab-done-label"></span>
+        <span class="seg-badge" id="tab-done-count">0</span>
+      </button>
+    </div>
+  </header>
+  <div id="cat-content"></div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     STATS SCREEN
+═══════════════════════════════════════ -->
+<div id="screen-stats" class="screen">
+  <header>
+    <button class="back-btn" onclick="goTo('home')">‹ Biblioteka</button>
+    <div class="page-title">Statystyki</div>
+  </header>
+  <div id="stats-content" style="padding-bottom:20px"></div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     BOTTOM NAV
+═══════════════════════════════════════ -->
+<nav class="bnav">
+  <button class="bnav-btn active" id="nav-home" onclick="goTo('home')">
+    <div class="bnav-ico" id="bnav-ico-home"></div>
+    <div class="bnav-lbl">Biblioteka</div>
+  </button>
+  <button class="bnav-btn" id="nav-stats" onclick="goTo('stats')">
+    <div class="bnav-ico" id="bnav-ico-stats"></div>
+    <div class="bnav-lbl">Statystyki</div>
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     ADD/EDIT MODAL
+═══════════════════════════════════════ -->
+<div class="overlay" id="addOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+      <div class="sheet-title" id="modalTitle" style="margin-bottom:0">Nowy wpis</div>
+      <button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;background:#F2F2F7;border:none;font-size:1rem;color:#8E8E93;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer">✕</button>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Tytuł</label>
+      <input class="form-input" id="fTitle" placeholder="np. Mistrz i Małgorzata">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Autor / reżyser</label>
+      <input class="form-input" id="fAuthor" placeholder="opcjonalnie">
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Kategoria</label>
+      <div class="cat-pick">
+        <button class="cat-opt active" data-cat="book" onclick="selectCat('book')"><span id="catopt-book-ico"></span><br>Książka</button>
+        <button class="cat-opt" data-cat="film" onclick="selectCat('film')"><span id="catopt-film-ico"></span><br>Film</button>
+        <button class="cat-opt" data-cat="serial" onclick="selectCat('serial')"><span id="catopt-serial-ico"></span><br>Serial</button>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Status</label>
+      <div class="seg-group">
+        <button class="seg-opt active" data-status="want" onclick="selectStatus('want')">♡ Chcę</button>
+        <button class="seg-opt" data-status="done" onclick="selectStatus('done')">✓ Ukończone</button>
+      </div>
+    </div>
+
+    <div id="doneFields" style="display:none">
+      <div class="form-row">
+        <label class="form-label">Data przeczytania / obejrzenia</label>
+        <input type="date" class="form-input" id="fFinishedDate" style="color-scheme:light">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Ocena</label>
+        <div class="star-row" id="starRow">
+          <button class="star-btn" data-v="1" onclick="selectStar(1)">★</button>
+          <button class="star-btn" data-v="2" onclick="selectStar(2)">★</button>
+          <button class="star-btn" data-v="3" onclick="selectStar(3)">★</button>
+          <button class="star-btn" data-v="4" onclick="selectStar(4)">★</button>
+          <button class="star-btn" data-v="5" onclick="selectStar(5)">★</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Notatka</label>
+        <textarea class="form-input" id="fNote" placeholder="Kilka słów wrażeń…"></textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Tagi</label>
+      <div class="tag-field" onclick="document.getElementById('tagInput').focus()">
+        <input id="tagInput" placeholder="dodaj tag…">
+      </div>
+      <div style="font-size:0.68rem;color:#C7C7CC;margin-top:4px">Enter lub przecinek — dodaj tag</div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeModal()">Anuluj</button>
+      <button class="btn-save" onclick="saveEntry()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DETAIL SHEET
+═══════════════════════════════════════ -->
+<div class="overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+  <div class="sheet detail-sheet" id="detailSheet"></div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+// SVG icons — cienkie kreskowe
+const SVG = {
+  book: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 6.5A2.5 2.5 0 014.5 4H20v14H4.5A2.5 2.5 0 012 15.5V6.5z"/>
+    <path d="M8 4v14"/>
+    <path d="M12 8h5M12 12h5"/>
+  </svg>`,
+  film: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="7" width="20" height="14" rx="2"/>
+    <path d="M7 7V3M17 7V3M2 12h20"/>
+    <path d="M7 3h10"/>
+    <circle cx="7" cy="7" r="0.5" fill="currentColor"/>
+    <circle cx="17" cy="7" r="0.5" fill="currentColor"/>
+    <polygon points="10,13 10,18 15,15.5" fill="currentColor" stroke="none"/>
+  </svg>`,
+  serial: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="4" width="20" height="14" rx="2"/>
+    <path d="M8 20h8M12 18v2"/>
+    <path d="M6 9h2v5H6zM11 9h2v5h-2zM16 9h2v5h-2z" stroke-width="1.4"/>
+  </svg>`,
+  trophy: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 21h8M12 17v4"/>
+    <path d="M5 3H3v4a4 4 0 004 4M19 3h2v4a4 4 0 01-4 4M7 3h10v6a5 5 0 01-10 0V3z"/>
+  </svg>`,
+  calendar: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2"/>
+    <path d="M16 2v4M8 2v4M3 10h18"/>
+  </svg>`,
+  chart: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 3v18h18"/>
+    <path d="M7 16l4-5 4 3 4-6"/>
+  </svg>`,
+  library: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 19V5M8 19V5M12 19V5"/>
+    <rect x="14" y="5" width="6" height="14" rx="1"/>
+  </svg>`,
+};
+
+function svgIcon(key, color='currentColor', size=22) {
+  return SVG[key]
+    ? SVG[key].replace(/width="22"/, `width="${size}"`).replace(/height="22"/, `height="${size}"`)
+              .replace(/width="18"/, `width="${size}"`).replace(/height="18"/, `height="${size}"`)
+              .replace(/width="20"/, `width="${size}"`).replace(/height="20"/, `height="${size}"`)
+              .replace('stroke="currentColor"', `stroke="${color}"`)
+    : '';
+}
+
+const CAT_META = {
+  book:   { svgKey:'book',   label:'Książki',  singular:'Książka',  doneLabel:'Przeczytane',  wantLabel:'Do przeczytania', color:'#E8736C', pale:'#FFF2F1' },
+  film:   { svgKey:'film',   label:'Filmy',    singular:'Film',     doneLabel:'Obejrzane',    wantLabel:'Do obejrzenia',   color:'#5B8CDB', pale:'#F0F5FF' },
+  serial: { svgKey:'serial', label:'Seriale',  singular:'Serial',   doneLabel:'Obejrzane',    wantLabel:'Do obejrzenia',   color:'#6BBF8C', pale:'#F0FFF5' },
+};
+const PALETTES = [
+  ['#FF6B6B','#C0392B'],['#4A90D9','#1A3A6B'],['#27AE60','#1A5C35'],
+  ['#9B59B6','#5B2C6F'],['#E67E22','#784212'],['#1ABC9C','#0E6655'],
+  ['#E91E8C','#880E4F'],['#3F51B5','#1A237E'],['#FF5722','#BF360C'],
+  ['#607D8B','#263238'],['#795548','#3E2723'],['#009688','#004D40'],
+];
+const MONTHS_PL = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+const DAYS_PL   = ['Pn','Wt','Śr','Cz','Pt','Sb','Nd'];
+const BOOK_GOAL = 60;
+
+let db      = JSON.parse(localStorage.getItem('ca_v6') || '[]');
+let readLog  = JSON.parse(localStorage.getItem('ca_readlog')  || '{}');
+let watchLog = JSON.parse(localStorage.getItem('ca_watchlog') || '{}');
+
+function persist()    { localStorage.setItem('ca_v6',      JSON.stringify(db)); }
+function persistLog() { localStorage.setItem('ca_readlog',  JSON.stringify(readLog));
+                        localStorage.setItem('ca_watchlog', JSON.stringify(watchLog)); }
+
+// ── HELPERS ───────────────────────────────────────────
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const sh  = n => '★'.repeat(n)+'☆'.repeat(5-n);
+const dfmt = iso => iso ? new Date(iso).toLocaleDateString('pl-PL',{day:'numeric',month:'short',year:'numeric'}) : '';
+const todayStr = () => new Date().toISOString().slice(0,10);
+const ymKey = iso => { const d=new Date(iso); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; };
+const ymLabel = key => { const [y,m]=key.split('-'); return `${MONTHS_PL[+m-1]} ${y}`; };
+const byStatus = (cat,status) => [...db].reverse().filter(e=>e.cat===cat&&e.status===status);
+function hashPal(id) { const h=[...id].reduce((a,c)=>a+c.charCodeAt(0),0); return PALETTES[h%PALETTES.length]; }
+
+// ── COVER HTML ────────────────────────────────────────
+function coverHTML(entry, size='md') {
+  const w = size==='lg'?110:82, h = size==='lg'?160:120;
+  const r = size==='lg'?9:9;
+  const fs = size==='lg'?'0.72rem':'0.58rem';
+  const pal = hashPal(entry.id);
+  const words = entry.title.split(' ');
+  const half = Math.ceil(words.length/2);
+  const l1 = words.slice(0,half).join(' '), l2 = words.slice(half).join(' ');
+  const icoSize = size==='lg'?20:15;
+  return `<div class="cover-box ${size}" style="width:${w}px;height:${h}px;background:linear-gradient(145deg,${pal[0]},${pal[1]})">
+    <div class="cover-spine"></div>
+    <div class="cover-icon" style="opacity:0.55;line-height:0">${svgIcon(CAT_META[entry.cat].svgKey,'white',icoSize)}</div>
+    <div class="cover-text" style="font-size:${fs}">${esc(l1)}${l2?'<br>'+esc(l2):''}</div>
+  </div>`;
+}
+
+// ── NAVIGATION ────────────────────────────────────────
+let currentScreen = 'home';
+let currentCat    = 'book';
+let currentCatTab = 'want';
+let calView = { year: new Date().getFullYear(), month: new Date().getMonth() };
+
+function goTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+  const navId = ['book','film','serial'].includes(screen) ? 'home' : screen;
+  document.getElementById('nav-'+navId)?.classList.add('active');
+  currentScreen = screen;
+  if (typeof updateNavIcons === 'function') updateNavIcons(screen);
+  if (screen === 'home') renderHome();
+  else if (screen === 'stats') renderStats();
+}
+
+function goToCat(cat) {
+  currentCat = cat;
+  currentCatTab = byStatus(cat,'want').length > 0 ? 'want' : 'done';
+  const meta = CAT_META[cat];
+  document.getElementById('cat-icon-big').innerHTML = svgIcon(meta.svgKey, meta.color, 28);
+  document.getElementById('cat-label-big').textContent = meta.label;
+  document.getElementById('screen-cat').style.setProperty('--cat-color', meta.color);
+  document.getElementById('tab-want-label').textContent = meta.wantLabel;
+  document.getElementById('tab-done-label').textContent = meta.doneLabel;
+  renderCatTabs();
+  renderCatContent();
+  goTo('cat');
+  document.getElementById('nav-home').classList.add('active');
+}
+
+function switchCatTab(tab) {
+  currentCatTab = tab;
+  renderCatTabs();
+  renderCatContent();
+}
+
+// ── RENDER HOME ───────────────────────────────────────
+function renderHome() {
+  const done = db.filter(e=>e.status==='done');
+  const want = db.filter(e=>e.status==='want');
+  const rated = done.filter(e=>e.rating>0);
+  const avg = rated.length ? (rated.reduce((a,e)=>a+e.rating,0)/rated.length).toFixed(1) : '—';
+
+  // cat list
+  const cl = document.getElementById('catList');
+  cl.innerHTML = Object.entries(CAT_META).map(([key,meta],i) => {
+    const d = byStatus(key,'done').length, w = byStatus(key,'want').length;
+    return `<div class="cat-row" onclick="goToCat('${key}')">
+      <div class="cat-icon-tile" style="background:${meta.pale};color:${meta.color}">${svgIcon(meta.svgKey, meta.color, 20)}</div>
+      <div style="flex:1">
+        <div class="cat-name">${meta.label}</div>
+        <div class="cat-sub">
+          <span style="color:${meta.color};font-weight:600">${d}</span> ukończone &nbsp;·&nbsp;
+          <span style="color:#E67E22;font-weight:600">${w}</span> w planach
+        </div>
+      </div>
+      <div class="cat-chevron">›</div>
+    </div>`;
+  }).join('');
+
+  // challenge
+  const thisYear = new Date().getFullYear();
+  const booksThisYear = done.filter(e=>e.cat==='book'&&e.date&&new Date(e.date).getFullYear()===thisYear).length;
+  const pct = Math.min(100, Math.round(booksThisYear/BOOK_GOAL*100));
+  const barBg = pct>=100 ? '#27AE60' : 'linear-gradient(90deg,#E8736C,#FFB800)';
+  document.getElementById('challengeCard').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div>
+        <div style="font-size:0.95rem;font-weight:700;color:#4A4A4F">${svgIcon('trophy','#E8736C',16)} Wyzwanie ${thisYear}</div>
+        <div style="font-size:0.72rem;color:#8E8E93;margin-top:2px">${booksThisYear} z ${BOOK_GOAL} książek</div>
+      </div>
+      <div style="font-size:1.6rem;font-weight:700;color:${pct>=100?'#27AE60':'#E8736C'}">${pct}%</div>
+    </div>
+    <div class="challenge-bar-track">
+      <div class="challenge-bar-fill" style="width:${pct}%;background:${barBg}"></div>
+    </div>
+    <div style="font-size:0.7rem;color:${pct>=100?'#27AE60':'#8E8E93'};margin-top:6px;font-weight:${pct>=100?600:400}">
+      ${pct>=100?'🎉 Cel osiągnięty!':'Jeszcze '+(BOOK_GOAL-booksThisYear)+' książek do celu'}
+    </div>`;
+
+  // activity
+  const m = {};
+  done.forEach(e=>{ if(!e.date)return; const k=ymKey(e.date); if(!m[k])m[k]={}; if(!m[k][e.cat])m[k][e.cat]=0; m[k][e.cat]++; });
+  const months = Object.entries(m).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,6);
+  const actEl = document.getElementById('activitySection');
+  if (months.length) {
+    actEl.innerHTML = `<div class="section-label">Aktywność</div>
+      <div style="background:white;border-radius:16px;margin:0 16px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,0.07)">
+        ${months.map(([key,cats],i)=>`
+          <div class="activity-row" style="${i===months.length-1?'border-bottom:none':''}">
+            <div style="width:38px;text-align:center">
+              <div style="font-size:0.62rem;font-weight:700;color:#8E8E93;text-transform:uppercase">${MONTHS_PL[+key.split('-')[1]-1]?.slice(0,3)}</div>
+              <div style="font-size:0.7rem;color:#C7C7CC">${key.split('-')[0]}</div>
+            </div>
+            <div style="flex:1;display:flex;gap:10px;flex-wrap:wrap">
+              ${Object.entries(cats).map(([cat,n])=>`<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.72rem;color:${CAT_META[cat]?.color};font-weight:600">${svgIcon(CAT_META[cat]?.svgKey,CAT_META[cat]?.color,12)} ${n}</span>`).join('')}
+            </div>
+          </div>`).join('')}
+      </div>`;
+  } else { actEl.innerHTML = ''; }
+
+  // quick stats
+  document.getElementById('qs-done').textContent = done.length;
+  document.getElementById('qs-want').textContent = want.length;
+  document.getElementById('qs-avg').textContent = avg;
+}
+
+// ── RENDER CATEGORY ───────────────────────────────────
+function renderCatTabs() {
+  const meta = CAT_META[currentCat];
+  ['want','done'].forEach(t => {
+    const btn = document.getElementById('tab-'+t);
+    btn.classList.toggle('active', t===currentCatTab);
+    document.getElementById('tab-'+t+'-count').textContent = byStatus(currentCat,t).length;
+  });
+}
+
+function renderCatContent() {
+  const meta = CAT_META[currentCat];
+  const el = document.getElementById('cat-content');
+
+  if (currentCatTab === 'want') {
+    const items = byStatus(currentCat,'want');
+    if (!items.length) {
+      el.innerHTML = `<div class="empty-state">
+        <div class="empty-icon" style="display:flex;justify-content:center;opacity:0.3">${svgIcon(meta.svgKey,meta.color,42)}</div>
+        <div class="empty-text">Lista jest pusta</div>
+        <button class="empty-btn" style="background:${meta.color}" onclick="openAdd('${currentCat}','want')">+ Dodaj</button>
+      </div>`;
+    } else {
+      el.innerHTML = `<div class="covers-grid">${items.map(e=>`
+        <div class="cover-item" onclick="openDetail('${e.id}')">
+          ${coverHTML(e)}
+          <div class="cover-item-title">${esc(e.title)}</div>
+          ${e.author?`<div class="cover-item-author">${esc(e.author)}</div>`:''}
+        </div>`).join('')}</div>`;
+    }
+  } else {
+    // group by month
+    const groups = {};
+    byStatus(currentCat,'done').forEach(e=>{ const k=e.date?ymKey(e.date):'bez-daty'; if(!groups[k])groups[k]=[]; groups[k].push(e); });
+    const sorted = Object.entries(groups).sort((a,b)=>b[0].localeCompare(a[0]));
+    if (!sorted.length) {
+      el.innerHTML = `<div class="empty-state">
+        <div class="empty-icon" style="display:flex;justify-content:center;opacity:0.3">${svgIcon(meta.svgKey,meta.color,42)}</div>
+        <div class="empty-text">Brak ukończonych</div>
+        <button class="empty-btn" style="background:${meta.color}" onclick="openAdd('${currentCat}','done')">+ Dodaj</button>
+      </div>`;
+    } else {
+      el.innerHTML = '<div style="padding:16px">'+sorted.map(([key,entries])=>`
+        <div class="month-group">
+          <div class="month-header">
+            <div class="month-label">${key==='bez-daty'?'Bez daty':ymLabel(key)}</div>
+            <div class="month-line"></div>
+            <div class="month-count" style="color:${meta.color}">${entries.length} ${entries.length===1?meta.singular.toLowerCase():meta.doneLabel.toLowerCase()}</div>
+          </div>
+          <div class="covers-grid" style="padding:0">
+            ${entries.map(e=>`
+              <div class="cover-item" onclick="openDetail('${e.id}')">
+                ${coverHTML(e)}
+                <div class="cover-item-title">${esc(e.title)}</div>
+                ${e.author?`<div class="cover-item-author">${esc(e.author)}</div>`:''}
+                ${e.rating>0?`<div class="cover-item-stars">${'★'.repeat(e.rating)}</div>`:''}
+              </div>`).join('')}
+          </div>
+        </div>`).join('')+'</div>';
+    }
+  }
+}
+
+// ── RENDER STATS ──────────────────────────────────────
+function renderStats() {
+  const done = db.filter(e=>e.status==='done');
+  const want = db.filter(e=>e.status==='want');
+  const rated = done.filter(e=>e.rating>0);
+  const avg = rated.length ? (rated.reduce((a,e)=>a+e.rating,0)/rated.length).toFixed(1) : '—';
+  const rd={1:0,2:0,3:0,4:0,5:0}; rated.forEach(e=>rd[e.rating]++);
+  const mR = Math.max(...Object.values(rd),1);
+  const cnt = {book:byStatus('book','done').length,film:byStatus('film','done').length,serial:byStatus('serial','done').length};
+  const maxCat = Math.max(...Object.values(cnt),1);
+  const tc={}; done.forEach(e=>(e.tags||[]).forEach(t=>{tc[t]=(tc[t]||0)+1}));
+  const topTags = Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const thisYear = new Date().getFullYear();
+  const booksThisYear = done.filter(e=>e.cat==='book'&&e.date&&new Date(e.date).getFullYear()===thisYear).length;
+  const pct = Math.min(100,Math.round(booksThisYear/BOOK_GOAL*100));
+  const readDaysCount  = Object.keys(readLog).length;
+  const watchDaysCount = Object.keys(watchLog).length;
+  const thisYearReadDays  = Object.keys(readLog).filter(k=>k.startsWith(String(thisYear))).length;
+  const thisYearWatchDays = Object.keys(watchLog).filter(k=>k.startsWith(String(thisYear))).length;
+  const filmsFinishedDates = done.filter(e=>e.cat==='film'&&e.date).map(e=>e.date);
+  const serialsFinishedDates = done.filter(e=>e.cat==='serial'&&e.date).map(e=>e.date);
+  const booksFinishedDates = done.filter(e=>e.cat==='book'&&e.date).map(e=>e.date);
+
+  const barRow = (label,val,max,color) => `
+    <div class="bar-row">
+      <div class="bar-label">${label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${max>0?Math.round(val/max*100):0}%;background:${color}"></div></div>
+      <div class="bar-val">${val}</div>
+    </div>`;
+
+  document.getElementById('stats-content').innerHTML = `
+    <!-- challenge -->
+    <div class="card" style="margin:0 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div style="font-size:0.95rem;font-weight:700;color:#4A4A4F">${svgIcon('trophy','#E8736C',16)} Wyzwanie ${thisYear}</div>
+          <div style="font-size:0.72rem;color:#8E8E93;margin-top:2px">${booksThisYear} z ${BOOK_GOAL} książek</div>
+        </div>
+        <div style="font-size:1.6rem;font-weight:700;color:${pct>=100?'#27AE60':'#E8736C'}">${pct}%</div>
+      </div>
+      <div class="challenge-bar-track">
+        <div class="challenge-bar-fill" style="width:${pct}%;background:${pct>=100?'#27AE60':'linear-gradient(90deg,#E8736C,#FFB800)'}"></div>
+      </div>
+    </div>
+
+    <!-- reading calendar -->
+    <div class="card" style="margin:12px 16px 0">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:0.95rem;font-weight:700;color:#4A4A4F">${svgIcon('calendar','#4A4A4F',16)} Kalendarz czytania</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="calPrev()" style="background:none;border:none;color:#5B8CDB;font-size:1.1rem;padding:0 4px">‹</button>
+          <span id="calLabel" style="font-size:0.78rem;font-weight:600;color:#3C3C43;min-width:90px;text-align:center"></span>
+          <button onclick="calNext()" style="background:none;border:none;color:#5B8CDB;font-size:1.1rem;padding:0 4px">›</button>
+        </div>
+      </div>
+      <div id="calGrid"></div>
+      <div style="margin-top:12px;padding:10px 12px;background:#F9F9F9;border-radius:10px">
+        <div style="font-size:0.75rem;color:#8E8E93;margin-bottom:6px;display:flex;align-items:center;gap:5px">${svgIcon('book','#27AE60',14)} Zaznacz dni czytania:</div>
+        <div class="day-picker" id="dayPickerRead"></div>
+        <div style="font-size:0.75rem;color:#8E8E93;margin:10px 0 6px;display:flex;align-items:center;gap:5px">${svgIcon('film','#7B5EA7',14)} Zaznacz dni oglądania:</div>
+        <div class="day-picker" id="dayPickerWatch"></div>
+        <div style="font-size:0.7rem;color:#8E8E93;margin-top:8px;display:flex;flex-direction:column;gap:3px">
+          <span style="display:flex;align-items:center;gap:5px">${svgIcon('book','#27AE60',12)} Dni czytania w tym roku: <strong style="color:#27AE60">${thisYearReadDays}</strong> &nbsp;·&nbsp; łącznie: <strong style="color:#5B8CDB">${readDaysCount}</strong></span>
+          <span style="display:flex;align-items:center;gap:5px">${svgIcon('film','#7B5EA7',12)} Dni oglądania w tym roku: <strong style="color:#27AE60">${thisYearWatchDays}</strong> &nbsp;·&nbsp; łącznie: <strong style="color:#5B8CDB">${watchDaysCount}</strong></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;font-size:0.65rem;color:#8E8E93;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:#27AE60;display:inline-block"></span>Czytanie</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:#7B5EA7;display:inline-block"></span>Oglądanie</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style='line-height:0'>${svgIcon('book','#E8736C',12)}</span>Książka</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style='line-height:0'>${svgIcon('film','#5B8CDB',12)}</span>Film</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style='line-height:0'>${svgIcon('serial','#6BBF8C',12)}</span>Serial</span>
+      </div>
+    </div>
+
+    <!-- stat tiles -->
+    <div class="stats-grid" style="margin-top:12px">
+      <div class="stats-tile"><div class="stats-tile-n" style="color:#27AE60">${done.length}</div><div class="stats-tile-l">Ukończone</div></div>
+      <div class="stats-tile"><div class="stats-tile-n" style="color:#E67E22">${want.length}</div><div class="stats-tile-l">Na liście</div></div>
+      <div class="stats-tile"><div class="stats-tile-n" style="color:#FFB800">${avg}</div><div class="stats-tile-l">Śr. ocena ★</div></div>
+      <div class="stats-tile"><div class="stats-tile-n" style="color:#5B8CDB">${db.length}</div><div class="stats-tile-l">Wszystkich</div></div>
+    </div>
+
+    <!-- category bars -->
+    <div class="card" style="margin:12px 16px 0">
+      <div style="font-size:1rem;font-weight:700;color:#4A4A4F;margin-bottom:14px">Kategorie</div>
+      ${barRow('Książki',cnt.book,maxCat,'#E8736C')}
+      ${barRow('Filmy',cnt.film,maxCat,'#5B8CDB')}
+      ${barRow('Seriale',cnt.serial,maxCat,'#6BBF8C')}
+    </div>
+
+    ${rated.length?`<div class="card" style="margin:12px 16px 0">
+      <div style="font-size:1rem;font-weight:700;color:#4A4A4F;margin-bottom:14px">Oceny</div>
+      ${[5,4,3,2,1].map(n=>barRow('★'.repeat(n),rd[n],mR,'#FFB800')).join('')}
+    </div>`:''}
+
+    ${topTags.length?`<div class="card" style="margin:12px 16px 0">
+      <div style="font-size:1rem;font-weight:700;color:#4A4A4F;margin-bottom:12px">Popularne tagi</div>
+      <div class="tags-cloud">${topTags.map(([t,n])=>`<div class="tag-chip">#${esc(t)} <span style="color:#5B8CDB;font-weight:600">×${n}</span></div>`).join('')}</div>
+    </div>`:''}
+  `;
+
+  renderCal(booksFinishedDates, filmsFinishedDates, serialsFinishedDates);
+}
+
+// ── CALENDAR ──────────────────────────────────────────
+function calPrev() { const d=new Date(calView.year,calView.month-1,1); calView={year:d.getFullYear(),month:d.getMonth()}; renderCal(); }
+function calNext() { const d=new Date(calView.year,calView.month+1,1); calView={year:d.getFullYear(),month:d.getMonth()}; renderCal(); }
+
+function renderCal(booksFinishedDates, filmsFinishedDates, serialsFinishedDates) {
+  const done = db.filter(e=>e.status==='done');
+  if (!booksFinishedDates)   booksFinishedDates   = done.filter(e=>e.cat==='book'  &&e.date).map(e=>e.date);
+  if (!filmsFinishedDates)   filmsFinishedDates   = done.filter(e=>e.cat==='film'  &&e.date).map(e=>e.date);
+  if (!serialsFinishedDates) serialsFinishedDates = done.filter(e=>e.cat==='serial'&&e.date).map(e=>e.date);
+  const {year,month} = calView;
+  const labelEl   = document.getElementById('calLabel');
+  const gridEl    = document.getElementById('calGrid');
+  const pickerReadEl  = document.getElementById('dayPickerRead');
+  const pickerWatchEl = document.getElementById('dayPickerWatch');
+  if (!labelEl) return;
+
+  labelEl.textContent = `${MONTHS_PL[month]} ${year}`;
+
+  const firstDay = new Date(year,month,1).getDay();
+  const offset   = (firstDay+6)%7;
+  const daysInMonth = new Date(year,month+1,0).getDate();
+  const today = new Date();
+
+  const booksOnDay = {};
+  booksFinishedDates.forEach(iso=>{
+    const d=new Date(iso);
+    if(d.getFullYear()===year&&d.getMonth()===month){ const k=d.getDate(); booksOnDay[k]=(booksOnDay[k]||0)+1; }
+  });
+  const filmsOnDay = {};
+  filmsFinishedDates.forEach(iso=>{
+    const d=new Date(iso);
+    if(d.getFullYear()===year&&d.getMonth()===month){ const k=d.getDate(); filmsOnDay[k]=(filmsOnDay[k]||0)+1; }
+  });
+  const serialsOnDay = {};
+  serialsFinishedDates.forEach(iso=>{
+    const d=new Date(iso);
+    if(d.getFullYear()===year&&d.getMonth()===month){ const k=d.getDate(); serialsOnDay[k]=(serialsOnDay[k]||0)+1; }
+  });
+
+  // header
+  let html = `<div class="cal-grid-header">${DAYS_PL.map(d=>`<div class="cal-day-name">${d}</div>`).join('')}</div><div class="cal-grid">`;
+  for(let i=0;i<offset;i++) html+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const didRead=!!readLog[key], didWatch=!!watchLog[key];
+    const books=booksOnDay[d]||0, films=filmsOnDay[d]||0, serials=serialsOnDay[d]||0;
+    const hasMedia = books||films||serials;
+    const isToday=today.getFullYear()===year&&today.getMonth()===month&&today.getDate()===d;
+    // color: read=green, watch=purple, both=gradient via layered bg, none=grey
+    let bg, border;
+    if (didRead && didWatch) { bg='linear-gradient(135deg,#27AE60 50%,#7B5EA7 50%)'; border='1.5px solid transparent'; }
+    else if (didRead)  { bg='#27AE60'; border='1.5px solid transparent'; }
+    else if (didWatch) { bg='#7B5EA7'; border='1.5px solid transparent'; }
+    else if (isToday)  { bg='#E8F4FF'; border='1.5px solid #5B8CDB'; }
+    else               { bg='#F5F5F5'; border='1.5px solid transparent'; }
+    const numColor=(didRead||didWatch)?'white':isToday?'#5B8CDB':'#3C3C43';
+    const numWeight=isToday?700:400;
+    // Build tiny media dots at bottom
+    const dots = [books?'📚':'', films?'🎬':'', serials?'📺':''].filter(Boolean).join('');
+    html+=`<div class="cal-cell" style="background:${bg};border:${border}">
+      <div class="cal-cell-num" style="color:${numColor};font-weight:${numWeight}">${d}</div>
+      ${hasMedia?`<div class="cal-book-dot">${dots}</div>`:''}
+    </div>`;
+  }
+  html+='</div>';
+  gridEl.innerHTML = html;
+
+  // day pickers
+  let rHtml='', wHtml='';
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const ar=!!readLog[key], aw=!!watchLog[key];
+    rHtml+=`<button class="day-btn" onclick="toggleReadDay('${key}')"  style="background:${ar?'#27AE60':'#E5E5EA'};color:${ar?'white':'#8E8E93'}">${d}</button>`;
+    wHtml+=`<button class="day-btn" onclick="toggleWatchDay('${key}')" style="background:${aw?'#7B5EA7':'#E5E5EA'};color:${aw?'white':'#8E8E93'}">${d}</button>`;
+  }
+  pickerReadEl.innerHTML  = rHtml;
+  pickerWatchEl.innerHTML = wHtml;
+}
+
+function toggleReadDay(key) {
+  if(readLog[key]) delete readLog[key]; else readLog[key]=true;
+  persistLog(); renderCal();
+}
+function toggleWatchDay(key) {
+  if(watchLog[key]) delete watchLog[key]; else watchLog[key]=true;
+  persistLog(); renderCal();
+}
+
+// ── DETAIL SHEET ──────────────────────────────────────
+let currentDetailId = null;
+let markingDoneState = false;
+
+function openDetail(id) {
+  currentDetailId = id;
+  markingDoneState = false;
+  renderDetailSheet();
+  document.getElementById('detailOverlay').classList.add('open');
+}
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.remove('open');
+  currentDetailId = null;
+}
+function renderDetailSheet() {
+  const e = db.find(x=>x.id===currentDetailId);
+  if(!e) return;
+  const meta = CAT_META[e.cat];
+  let html = `<div class="sheet-handle"></div>
+    <div class="detail-top">
+      ${coverHTML(e,'lg')}
+      <div style="flex:1">
+        <div style="font-size:1.15rem;font-weight:700;color:#4A4A4F;line-height:1.25;margin-bottom:4px">${esc(e.title)}</div>
+        ${e.author?`<div style="font-size:0.85rem;color:#8E8E93;margin-bottom:10px">${esc(e.author)}</div>`:''}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+          <span class="detail-tag" style="background:${meta.color}20;color:${meta.color}">${svgIcon(meta.svgKey,meta.color,13)} ${meta.singular}</span>
+          <span class="detail-tag" style="background:${e.status==='done'?'#E8F8EE':'#FFF3E8'};color:${e.status==='done'?'#27AE60':'#E67E22'}">${e.status==='done'?'✓ Ukończone':'♡ Chcę'}</span>
+        </div>
+        ${e.status==='done'&&e.rating>0?`<div class="detail-stars">${sh(e.rating)}</div>`:''}
+        ${e.finishedDate?`<div style="font-size:0.7rem;color:#C7C7CC;margin-top:4px">${dfmt(new Date(e.finishedDate).toISOString())}</div>`:''}
+      </div>
+    </div>`;
+
+  if (e.status==='want') {
+    if (!markingDoneState) {
+      html+=`<div class="rating-picker">
+        <button class="btn-done-green" onclick="startMarkDone()">✓ Oznacz jako ${meta.doneLabel.toLowerCase()}</button>
+      </div>`;
+    } else {
+      html+=`<div class="rating-picker">
+        <div style="font-size:0.82rem;font-weight:600;color:#3C3C43;margin-bottom:10px;text-align:center">Jak oceniasz?</div>
+        <div class="rating-picker-stars">
+          ${[1,2,3,4,5].map(v=>`<button class="rating-star" onclick="confirmMarkDone(${v})">★</button>`).join('')}
+        </div>
+        <button class="btn-skip-green" onclick="confirmMarkDone(0)">Pomiń ocenę, oznacz jako ukończone</button>
+        <button class="btn-cancel-sm" onclick="cancelMarkDone()">Anuluj</button>
+      </div>`;
+    }
+  }
+
+  if(e.note) html+=`<div class="detail-note">„${esc(e.note)}"</div>`;
+  if(e.tags?.length) html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;padding:12px 20px 0">${e.tags.map(t=>`<span style="padding:4px 10px;border-radius:100px;background:#F2F2F7;font-size:0.72rem;color:#6C6C70">#${esc(t)}</span>`).join('')}</div>`;
+
+  html+=`<div class="detail-actions">
+    <button class="btn-edit" onclick="openEdit('${e.id}')">Edytuj</button>
+    <button class="btn-del" onclick="delEntry('${e.id}')">Usuń</button>
+  </div>`;
+
+  document.getElementById('detailSheet').innerHTML = html;
+}
+
+function startMarkDone() { markingDoneState=true; renderDetailSheet(); }
+function cancelMarkDone() { markingDoneState=false; renderDetailSheet(); }
+function confirmMarkDone(rating) {
+  const today = new Date().toISOString();
+  db = db.map(e=>e.id===currentDetailId?{...e,status:'done',rating,date:today,finishedDate:today.slice(0,10)}:e);
+  persist(); markingDoneState=false; renderDetailSheet();
+  if(currentScreen==='cat') renderCatContent();
+  else renderHome();
+}
+
+function delEntry(id) {
+  if(!confirm('Usunąć wpis?')) return;
+  db = db.filter(e=>e.id!==id); persist();
+  closeDetail();
+  if(currentScreen==='cat') { renderCatTabs(); renderCatContent(); }
+  else renderHome();
+}
+
+// ── ADD / EDIT ────────────────────────────────────────
+let formCat    = 'book';
+let formStatus = 'want';
+let formRating = 0;
+let formTags   = [];
+let editingId  = null;
+
+function openAdd(cat='book', status='want') {
+  editingId=null; formCat=cat; formStatus=status; formRating=0; formTags=[];
+  document.getElementById('modalTitle').textContent='Nowy wpis';
+  document.getElementById('fTitle').value='';
+  document.getElementById('fAuthor').value='';
+  document.getElementById('fNote').value='';
+  document.getElementById('fFinishedDate').value='';
+  selectCat(cat,false); selectStatus(status,false);
+  renderStars(); renderTagPills();
+  document.getElementById('addOverlay').classList.add('open');
+}
+function openEdit(id) {
+  closeDetail();
+  const e=db.find(x=>x.id===id); if(!e) return;
+  editingId=id; formCat=e.cat; formStatus=e.status; formRating=e.rating||0; formTags=[...(e.tags||[])];
+  document.getElementById('modalTitle').textContent='Edytuj wpis';
+  document.getElementById('fTitle').value=e.title;
+  document.getElementById('fAuthor').value=e.author||'';
+  document.getElementById('fNote').value=e.note||'';
+  document.getElementById('fFinishedDate').value=e.finishedDate||e.date?.slice(0,10)||'';
+  selectCat(e.cat,false); selectStatus(e.status,false);
+  renderStars(); renderTagPills();
+  document.getElementById('addOverlay').classList.add('open');
+}
+function closeModal() { document.getElementById('addOverlay').classList.remove('open'); editingId=null; }
+
+function selectCat(cat, update=true) {
+  formCat=cat;
+  document.querySelectorAll('.cat-opt').forEach(b=>{
+    const active=b.dataset.cat===cat;
+    const meta=CAT_META[b.dataset.cat];
+    b.classList.toggle('active',active);
+    b.style.borderColor=active?meta.color:'#E5E5EA';
+    b.style.background=active?meta.color+'18':'white';
+    b.style.color=active?meta.color:'#8E8E93';
+  });
+}
+function selectStatus(status, update=true) {
+  formStatus=status;
+  document.querySelectorAll('.seg-opt').forEach(b=>b.classList.toggle('active',b.dataset.status===status));
+  document.getElementById('doneFields').style.display=status==='done'?'block':'none';
+}
+function selectStar(v) { formRating=formRating===v?0:v; renderStars(); }
+function renderStars() {
+  document.querySelectorAll('.star-btn').forEach((b,i)=>b.classList.toggle('lit',i<formRating));
+}
+
+function addTag(t) {
+  t=t.trim(); if(!t||formTags.includes(t)) return;
+  formTags.push(t); renderTagPills();
+}
+function removeTag(i) { formTags.splice(i,1); renderTagPills(); }
+function renderTagPills() {
+  document.querySelectorAll('#tagInput ~ .tag-pill, .tag-field .tag-pill').forEach(p=>p.remove());
+  const field=document.querySelector('.tag-field');
+  const inp=document.getElementById('tagInput');
+  formTags.forEach((t,i)=>{
+    const p=document.createElement('span'); p.className='tag-pill';
+    p.innerHTML=`${esc(t)}<button onclick="removeTag(${i})">×</button>`;
+    field.insertBefore(p,inp);
+  });
+}
+
+const tagInp=document.getElementById('tagInput');
+tagInp.addEventListener('keydown',e=>{
+  if(e.key==='Enter'||e.key===','){ e.preventDefault(); addTag(tagInp.value.replace(/,/g,'')); tagInp.value=''; }
+  if(e.key==='Backspace'&&!tagInp.value&&formTags.length){ removeTag(formTags.length-1); }
+});
+tagInp.addEventListener('blur',()=>{ if(tagInp.value.trim()){addTag(tagInp.value);tagInp.value='';} });
+
+function saveEntry() {
+  const title=document.getElementById('fTitle').value.trim();
+  if(!title) return;
+  const finishedDate=document.getElementById('fFinishedDate').value;
+  const resolvedDate=formStatus==='done'&&finishedDate
+    ? new Date(finishedDate).toISOString()
+    : editingId?(db.find(e=>e.id===editingId)?.date||new Date().toISOString()):new Date().toISOString();
+  const entry={
+    id: editingId||Date.now().toString(),
+    title,
+    author:document.getElementById('fAuthor').value.trim(),
+    cat:formCat, status:formStatus,
+    rating:formStatus==='done'?formRating:0,
+    note:document.getElementById('fNote').value.trim(),
+    tags:[...formTags], date:resolvedDate,
+    finishedDate:formStatus==='done'?finishedDate:'',
+  };
+  if(editingId) db=db.map(e=>e.id===editingId?entry:e); else db.push(entry);
+  persist(); closeModal();
+  if(currentScreen==='cat'){ renderCatTabs(); renderCatContent(); }
+  else if(currentScreen==='stats') renderStats();
+  else renderHome();
+}
+
+// ── INIT ──────────────────────────────────────────────
+// Inject SVG into static elements
+document.getElementById('bnav-ico-home').innerHTML  = svgIcon('library','#4A4A4F',22);
+document.getElementById('bnav-ico-stats').innerHTML = svgIcon('chart','#8E8E93',22);
+document.getElementById('catopt-book-ico').innerHTML   = svgIcon('book',  CAT_META.book.color,  20);
+document.getElementById('catopt-film-ico').innerHTML   = svgIcon('film',  CAT_META.film.color,  20);
+document.getElementById('catopt-serial-ico').innerHTML = svgIcon('serial',CAT_META.serial.color,20);
+
+// Update bnav active color on nav change
+const _origGoTo = goTo;
+function updateNavIcons(screen) {
+  const homeActive = screen==='home'||['book','film','serial'].includes(screen);
+  document.getElementById('bnav-ico-home').innerHTML  = svgIcon('library', homeActive?'#4A4A4F':'#8E8E93', 22);
+  document.getElementById('bnav-ico-stats').innerHTML = svgIcon('chart', screen==='stats'?'#4A4A4F':'#8E8E93', 22);
+}
+
+renderHome();
+updateNavIcons('home');
+</script>
+<style>
+#splash {
+  position: fixed; inset: 0; z-index: 9000;
+  background: #F2F2F7;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+#splash.hide {
+  opacity: 0; transform: scale(1.04); pointer-events: none;
+}
+.splash-logo {
+  display: flex; align-items: center; justify-content: center;
+  width: 80px; height: 80px; border-radius: 22px;
+  background: linear-gradient(145deg, #E8736C, #5B8CDB);
+  box-shadow: 0 8px 32px rgba(91,140,219,0.25);
+  margin-bottom: 24px;
+  animation: splashPop 0.6s cubic-bezier(.3,1.4,.5,1) both;
+}
+@keyframes splashPop {
+  from { opacity:0; transform: scale(0.7); }
+  to   { opacity:1; transform: scale(1); }
+}
+.splash-name {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 2rem; font-weight: 700; color: #4A4A4F;
+  letter-spacing: -0.02em;
+  animation: splashFadeUp 0.5s 0.2s ease both;
+}
+.splash-name span { color: #5B8CDB; }
+.splash-tag {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.8rem; color: #8E8E93;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  margin-top: 8px;
+  animation: splashFadeUp 0.5s 0.35s ease both;
+}
+@keyframes splashFadeUp {
+  from { opacity:0; transform: translateY(10px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.splash-bar-wrap {
+  width: 120px; height: 3px; background: #E5E5EA;
+  border-radius: 100px; margin-top: 48px; overflow: hidden;
+  animation: splashFadeUp 0.4s 0.5s ease both;
+}
+.splash-bar {
+  height: 100%; border-radius: 100px;
+  background: linear-gradient(90deg, #E8736C, #5B8CDB);
+  animation: splashLoad 1s 0.6s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes splashLoad {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+</style>
+
+<div id="splash">
+  <div class="splash-logo">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 6.5A2.5 2.5 0 014.5 4H20v14H4.5A2.5 2.5 0 012 15.5V6.5z"/>
+      <path d="M8 4v14"/>
+      <path d="M12 8h5M12 12h5"/>
+    </svg>
+  </div>
+  <div class="splash-name">Culture<span>App</span></div>
+  <div class="splash-tag">twój dziennik kulturalny</div>
+  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+</div>
+
+<script>
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const s = document.getElementById('splash');
+    s.classList.add('hide');
+    setTimeout(() => s.remove(), 520);
+  }, 1800);
+});
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW error:', err));
+  });
+}
+</script>
+</html>
