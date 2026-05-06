@@ -268,14 +268,18 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 
     <div class="form-row">
       <label class="form-label">Tytuł</label>
-      <input class="form-input" id="fTitle" placeholder="np. Mistrz i Małgorzata">
+      <input class="form-input" id="fTitle" placeholder="">
     </div>
-    <div class="form-row">
-      <label class="form-label">Autor / reżyser</label>
+    <div class="form-row" id="fieldAuthor">
+      <label class="form-label" id="labelAuthor">Autor</label>
       <input class="form-input" id="fAuthor" placeholder="opcjonalnie">
     </div>
+    <div class="form-row" id="fieldYear" style="display:none">
+      <label class="form-label">Rok produkcji</label>
+      <input class="form-input" id="fYear" placeholder="np. 2023" type="number" min="1900" max="2099">
+    </div>
 
-    <div class="form-row">
+    <div class="form-row" id="fieldCat">
       <label class="form-label">Kategoria</label>
       <div class="cat-pick">
         <button class="cat-opt active" data-cat="book" onclick="selectCat('book')"><span id="catopt-book-ico"></span><br>Książka</button>
@@ -571,7 +575,7 @@ function renderCatContent() {
         <div class="cover-item" onclick="openDetail('${e.id}')">
           ${coverHTML(e)}
           <div class="cover-item-title">${esc(e.title)}</div>
-          ${e.author?`<div class="cover-item-author">${esc(e.author)}</div>`:''}
+          ${(e.author||e.year)?`<div class="cover-item-author">${[e.author,e.year].filter(Boolean).map(esc).join(' · ')}</div>`:''}
         </div>`).join('')}</div>`;
     }
   } else {
@@ -598,7 +602,7 @@ function renderCatContent() {
               <div class="cover-item" onclick="openDetail('${e.id}')">
                 ${coverHTML(e)}
                 <div class="cover-item-title">${esc(e.title)}</div>
-                ${e.author?`<div class="cover-item-author">${esc(e.author)}</div>`:''}
+                  ${(e.author||e.year)?`<div class="cover-item-author">${[e.author,e.year].filter(Boolean).map(esc).join(' · ')}</div>`:''}
                 ${e.rating>0?`<div class="cover-item-stars">${'★'.repeat(e.rating)}</div>`:''}
               </div>`).join('')}
           </div>
@@ -823,7 +827,7 @@ function renderDetailSheet() {
       ${coverHTML(e,'lg')}
       <div style="flex:1">
         <div style="font-size:1.15rem;font-weight:700;color:#4A4A4F;line-height:1.25;margin-bottom:4px">${esc(e.title)}</div>
-        ${e.author?`<div style="font-size:0.85rem;color:#8E8E93;margin-bottom:10px">${esc(e.author)}</div>`:''}
+        ${e.author?`<div style="font-size:0.85rem;color:#8E8E93;margin-bottom:10px">${esc(e.author)}${e.year?` · ${e.year}`:''}</div>`:(e.year?`<div style="font-size:0.85rem;color:#8E8E93;margin-bottom:10px">${e.year}</div>`:'')}
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
           <span class="detail-tag" style="background:${meta.color}20;color:${meta.color}">${svgIcon(meta.svgKey,meta.color,13)} ${meta.singular}</span>
           <span class="detail-tag" style="background:${e.status==='done'?'#E8F8EE':'#FFF3E8'};color:${e.status==='done'?'#27AE60':'#E67E22'}">${e.status==='done'?'✓ Ukończone':'♡ Chcę'}</span>
@@ -884,29 +888,48 @@ let formCat    = 'book';
 let formStatus = 'want';
 let formRating = 0;
 let formTags   = [];
+let formYear   = '';
 let editingId  = null;
 
+// Update form labels and visible fields based on category
+function updateFormContext(cat) {
+  const isBook = cat === 'book';
+  // author label
+  document.getElementById('labelAuthor').textContent = isBook ? 'Autor' : 'Reżyser';
+  document.getElementById('fAuthor').placeholder = 'opcjonalnie';
+  document.getElementById('fTitle').placeholder = isBook ? 'np. Mistrz i Małgorzata' : cat==='film' ? 'np. Oppenheimer' : 'np. Sukcesja';
+  // year field — only for film and serial
+  document.getElementById('fieldYear').style.display = isBook ? 'none' : 'block';
+  // hide category picker when opening from category screen (not home)
+  const fromCat = ['book','film','serial'].includes(currentScreen);
+  document.getElementById('fieldCat').style.display = (fromCat && !editingId) ? 'none' : 'block';
+}
+
 function openAdd(cat='book', status='want') {
-  editingId=null; formCat=cat; formStatus=status; formRating=0; formTags=[];
-  document.getElementById('modalTitle').textContent='Nowy wpis';
+  editingId=null; formCat=cat; formStatus=status; formRating=0; formTags=[]; formYear='';
+  document.getElementById('modalTitle').textContent = 'Nowy ' + (cat==='book'?'książka':cat==='film'?'film':'serial');
   document.getElementById('fTitle').value='';
   document.getElementById('fAuthor').value='';
+  document.getElementById('fYear').value='';
   document.getElementById('fNote').value='';
   document.getElementById('fFinishedDate').value='';
   selectCat(cat,false); selectStatus(status,false);
+  updateFormContext(cat);
   renderStars(); renderTagPills();
   document.getElementById('addOverlay').classList.add('open');
 }
 function openEdit(id) {
   closeDetail();
   const e=db.find(x=>x.id===id); if(!e) return;
-  editingId=id; formCat=e.cat; formStatus=e.status; formRating=e.rating||0; formTags=[...(e.tags||[])];
+  editingId=id; formCat=e.cat; formStatus=e.status; formRating=e.rating||0; formTags=[...(e.tags||[])]; formYear=e.year||'';
   document.getElementById('modalTitle').textContent='Edytuj wpis';
   document.getElementById('fTitle').value=e.title;
   document.getElementById('fAuthor').value=e.author||'';
+  document.getElementById('fYear').value=e.year||'';
   document.getElementById('fNote').value=e.note||'';
   document.getElementById('fFinishedDate').value=e.finishedDate||e.date?.slice(0,10)||'';
   selectCat(e.cat,false); selectStatus(e.status,false);
+  updateFormContext(e.cat);
   renderStars(); renderTagPills();
   document.getElementById('addOverlay').classList.add('open');
 }
@@ -922,6 +945,7 @@ function selectCat(cat, update=true) {
     b.style.background=active?meta.color+'18':'white';
     b.style.color=active?meta.color:'#8E8E93';
   });
+  updateFormContext(cat);
 }
 function selectStatus(status, update=true) {
   formStatus=status;
@@ -967,6 +991,7 @@ function saveEntry() {
     id: editingId||Date.now().toString(),
     title,
     author:document.getElementById('fAuthor').value.trim(),
+    year:document.getElementById('fYear').value.trim(),
     cat:formCat, status:formStatus,
     rating:formStatus==='done'?formRating:0,
     note:document.getElementById('fNote').value.trim(),
