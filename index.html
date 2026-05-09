@@ -174,7 +174,10 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 <div id="screen-home" class="screen active">
   <header>
     <div class="page-title">Biblioteka</div>
-    <button class="fab" onclick="openAdd('book','want')">+</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="openSearch()" style="width:34px;height:34px;border-radius:50%;background:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.08)" id="homeSearchBtn"></button>
+      <button class="fab" onclick="openAdd('book','want')">+</button>
+    </div>
   </header>
 
   <div class="cat-list" id="catList"></div>
@@ -214,7 +217,10 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
         <span id="cat-icon-big" style="font-size:1.6rem"></span>
         <span id="cat-label-big" style="font-size:1.5rem;font-weight:700;color:#4A4A4F;letter-spacing:-0.01em"></span>
       </div>
-      <button class="fab fab-sm" id="cat-add-btn" onclick="openAdd(currentCat, currentCatTab)">+</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="openSearch(currentCat)" style="width:32px;height:32px;border-radius:50%;background:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.08)" id="catSearchBtn"></button>
+        <button class="fab fab-sm" id="cat-add-btn" onclick="openAdd(currentCat, currentCatTab)">+</button>
+      </div>
     </div>
     <div class="seg-tabs">
       <button class="seg-tab active" id="tab-want" onclick="switchCatTab('want')">
@@ -242,12 +248,45 @@ textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
 </div>
 
 <!-- ═══════════════════════════════════════
+     SEARCH OVERLAY (slides down from top)
+═══════════════════════════════════════ -->
+<div id="searchOverlay" style="display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,0.3);backdrop-filter:blur(4px)" onclick="if(event.target===this)closeSearch()">
+  <div style="background:#F2F2F7;border-radius:0 0 20px 20px;padding:52px 16px 16px;box-shadow:0 4px 24px rgba(0,0,0,0.12)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div style="position:relative;flex:1">
+        <div style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;line-height:0" id="searchIconInInput"></div>
+        <input id="searchInput" type="text" placeholder="Tytuł, autor, reżyser, tag…"
+          oninput="renderSearch()"
+          style="width:100%;padding:11px 14px 11px 38px;border-radius:12px;border:none;background:white;font-size:0.9rem;color:#4A4A4F;outline:none;box-shadow:0 1px 4px rgba(0,0,0,0.06);font-family:inherit">
+      </div>
+      <button onclick="closeSearch()" style="background:none;border:none;color:#5B8CDB;font-size:0.9rem;font-weight:600;cursor:pointer;padding:0;font-family:inherit;white-space:nowrap">Anuluj</button>
+    </div>
+    <div id="searchTagChips" style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px"></div>
+  </div>
+  <div id="searchResults" style="padding:12px 16px;overflow-y:auto;max-height:calc(100vh - 200px)"></div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     CALENDAR SCREEN
+═══════════════════════════════════════ -->
+<div id="screen-calendar" class="screen">
+  <div style="background:#F2F2F7;padding:52px 16px 10px">
+    <div class="page-title">Kalendarz</div>
+  </div>
+  <div id="calendarScreenContent" style="padding:0 16px 20px"></div>
+</div>
+
+<!-- ═══════════════════════════════════════
      BOTTOM NAV
 ═══════════════════════════════════════ -->
 <nav class="bnav">
   <button class="bnav-btn active" id="nav-home" onclick="goTo('home')">
     <div class="bnav-ico" id="bnav-ico-home"></div>
     <div class="bnav-lbl">Biblioteka</div>
+  </button>
+  <button class="bnav-btn" id="nav-calendar" onclick="goTo('calendar')">
+    <div class="bnav-ico" id="bnav-ico-calendar"></div>
+    <div class="bnav-lbl">Kalendarz</div>
   </button>
   <button class="bnav-btn" id="nav-stats" onclick="goTo('stats')">
     <div class="bnav-ico" id="bnav-ico-stats"></div>
@@ -377,6 +416,17 @@ const SVG = {
     <path d="M4 19V5M8 19V5M12 19V5"/>
     <rect x="14" y="5" width="6" height="14" rx="1"/>
   </svg>`,
+  search: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="7"/>
+    <path d="M21 21l-4.35-4.35"/>
+  </svg>`,
+  calendarNav: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2"/>
+    <path d="M16 2v4M8 2v4M3 10h18"/>
+    <circle cx="8" cy="16" r="1" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="16" r="1" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1" fill="currentColor" stroke="none"/>
+  </svg>`,
 };
 
 function svgIcon(key, color='currentColor', size=22) {
@@ -453,7 +503,15 @@ function goTo(screen) {
   currentScreen = screen;
   if (typeof updateNavIcons === 'function') updateNavIcons(screen);
   if (screen === 'home') renderHome();
+  else if (screen === 'calendar') renderCalendarScreen();
   else if (screen === 'stats') renderStats();
+}
+
+function updateNavIcons(screen) {
+  const homeActive = screen==='home'||['book','film','serial'].includes(screen);
+  document.getElementById('bnav-ico-home').innerHTML     = svgIcon('library',    homeActive?'#4A4A4F':'#8E8E93', 22);
+  document.getElementById('bnav-ico-calendar').innerHTML = svgIcon('calendarNav',screen==='calendar'?'#4A4A4F':'#8E8E93', 22);
+  document.getElementById('bnav-ico-stats').innerHTML    = svgIcon('chart',      screen==='stats'?'#4A4A4F':'#8E8E93', 22);
 }
 
 function goToCat(cat) {
@@ -611,7 +669,208 @@ function renderCatContent() {
   }
 }
 
-// ── RENDER STATS ──────────────────────────────────────
+// ── SEARCH ────────────────────────────────────────────
+let activeTagFilter = null;
+let searchCatFilter = null; // filter to specific cat when opened from cat screen
+
+function openSearch(cat) {
+  searchCatFilter = cat || null;
+  activeTagFilter = null;
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchOverlay').style.display = 'block';
+  renderSearch();
+  setTimeout(() => document.getElementById('searchInput').focus(), 80);
+}
+function closeSearch() {
+  document.getElementById('searchOverlay').style.display = 'none';
+  activeTagFilter = null;
+  searchCatFilter = null;
+}
+
+function renderSearch() {
+  const query = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+
+  // Collect all tags from db for chips
+  const allTags = {};
+  db.forEach(e => (e.tags||[]).forEach(t => { allTags[t]=(allTags[t]||0)+1; }));
+  const topTags = Object.entries(allTags).sort((a,b)=>b[1]-a[1]).slice(0,20);
+
+  const chipsEl = document.getElementById('searchTagChips');
+  chipsEl.innerHTML = topTags.map(([t]) => {
+    const active = activeTagFilter === t;
+    return `<button onclick="toggleTagFilter('${esc(t)}')"
+      style="flex-shrink:0;padding:6px 13px;border-radius:100px;border:1.5px solid ${active?'#4A4A4F':'#E5E5EA'};background:${active?'#4A4A4F':'white'};color:${active?'white':'#8E8E93'};font-size:0.75rem;font-weight:500;cursor:pointer;font-family:inherit">#${esc(t)}</button>`;
+  }).join('');
+
+  // Filter db
+  let results = [...db].reverse().filter(e => {
+    if (searchCatFilter && e.cat !== searchCatFilter) return false;
+    const matchTag  = !activeTagFilter || (e.tags||[]).includes(activeTagFilter);
+    if (!matchTag) return false;
+    if (!query) return true;
+    return (e.title||'').toLowerCase().includes(query)
+      || (e.author||'').toLowerCase().includes(query)
+      || (e.tags||[]).some(t => t.toLowerCase().includes(query));
+  });
+
+  const el = document.getElementById('searchResults');
+  if (!query && !activeTagFilter) {
+    // Show all authors as quick-access list
+    const authors = {};
+    db.forEach(e => { if(e.author) authors[e.author]=(authors[e.author]||0)+1; });
+    const topAuthors = Object.entries(authors).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    el.innerHTML = `
+      ${topAuthors.length ? `
+        <div style="font-size:0.78rem;font-weight:700;color:#8E8E93;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Autorzy / reżyserzy</div>
+        <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:20px">
+          ${topAuthors.map(([a,n],i)=>`
+            <div onclick="document.getElementById('searchInput').value='${esc(a)}';renderSearch()"
+              style="padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:${i<topAuthors.length-1?'1px solid #F2F2F7':'none'};cursor:pointer">
+              <div style="font-size:0.9rem;color:#4A4A4F;font-weight:500">${esc(a)}</div>
+              <div style="font-size:0.78rem;color:#8E8E93">${n} ${n===1?'pozycja':'pozycji'}</div>
+            </div>`).join('')}
+        </div>` : ''}
+      <div style="font-size:0.78rem;color:#8E8E93;text-align:center;padding:20px 0">Wpisz frazę lub wybierz tag</div>`;
+    return;
+  }
+
+  if (!results.length) {
+    el.innerHTML = `<div style="text-align:center;padding:48px 20px;color:#8E8E93;font-size:0.9rem">Brak wyników</div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div style="font-size:0.78rem;font-weight:700;color:#8E8E93;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">${results.length} wyników</div>
+    <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+      ${results.map((e,i)=>{
+        const meta = CAT_META[e.cat];
+        return `<div onclick="openDetail('${e.id}')"
+          style="padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:${i<results.length-1?'1px solid #F2F2F7':'none'};cursor:pointer">
+          <div style="width:36px;height:36px;border-radius:10px;background:${meta.pale};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${meta.color}">${svgIcon(meta.svgKey,meta.color,16)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:0.9rem;font-weight:600;color:#4A4A4F;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.title)}</div>
+            <div style="font-size:0.75rem;color:#8E8E93;margin-top:1px">${[e.author,e.year].filter(Boolean).map(esc).join(' · ')}${e.author||e.year?'':meta.label}</div>
+            ${(e.tags||[]).length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${e.tags.map(t=>`<span style="font-size:0.65rem;padding:2px 7px;border-radius:100px;background:#F2F2F7;color:#8E8E93">#${esc(t)}</span>`).join('')}</div>`:''}
+          </div>
+          <div style="font-size:0.7rem;color:${e.status==='done'?'#27AE60':'#E67E22'};font-weight:600;flex-shrink:0">${e.status==='done'?'✓':'♡'}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function toggleTagFilter(tag) {
+  activeTagFilter = activeTagFilter === tag ? null : tag;
+  renderSearch();
+}
+
+// ── CALENDAR SCREEN ───────────────────────────────────
+function renderCalendarScreen() {
+  const el = document.getElementById('calendarScreenContent');
+  const done = db.filter(e=>e.status==='done');
+  const booksFinishedDates   = done.filter(e=>e.cat==='book'  &&e.date).map(e=>e.date);
+  const filmsFinishedDates   = done.filter(e=>e.cat==='film'  &&e.date).map(e=>e.date);
+  const serialsFinishedDates = done.filter(e=>e.cat==='serial'&&e.date).map(e=>e.date);
+  const readDaysCount  = Object.keys(readLog).length;
+  const watchDaysCount = Object.keys(watchLog).length;
+  const thisYear = new Date().getFullYear();
+  const thisYearReadDays  = Object.keys(readLog).filter(k=>k.startsWith(String(thisYear))).length;
+  const thisYearWatchDays = Object.keys(watchLog).filter(k=>k.startsWith(String(thisYear))).length;
+
+  el.innerHTML = `
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:0.95rem;font-weight:700;color:#4A4A4F;display:flex;align-items:center;gap:6px">${svgIcon('calendar','#4A4A4F',16)} Kalendarz</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="calPrev();renderCalendarScreen()" style="background:none;border:none;color:#5B8CDB;font-size:1.1rem;padding:0 4px;cursor:pointer">‹</button>
+          <span id="calLabel2" style="font-size:0.78rem;font-weight:600;color:#4A4A4F;min-width:110px;text-align:center"></span>
+          <button onclick="calNext();renderCalendarScreen()" style="background:none;border:none;color:#5B8CDB;font-size:1.1rem;padding:0 4px;cursor:pointer">›</button>
+        </div>
+      </div>
+      <div id="calGrid2"></div>
+      <div style="margin-top:12px;padding:10px 12px;background:#F9F9F9;border-radius:10px">
+        <div style="font-size:0.75rem;color:#8E8E93;margin-bottom:6px;display:flex;align-items:center;gap:5px">${svgIcon('book','#27AE60',14)} Zaznacz dni czytania:</div>
+        <div class="day-picker" id="dayPickerRead2"></div>
+        <div style="font-size:0.75rem;color:#8E8E93;margin:10px 0 6px;display:flex;align-items:center;gap:5px">${svgIcon('film','#7B5EA7',14)} Zaznacz dni oglądania:</div>
+        <div class="day-picker" id="dayPickerWatch2"></div>
+        <div style="font-size:0.7rem;color:#8E8E93;margin-top:8px;display:flex;flex-direction:column;gap:3px">
+          <span style="display:flex;align-items:center;gap:5px">${svgIcon('book','#27AE60',12)} W tym roku: <strong style="color:#27AE60">${thisYearReadDays}</strong> dni czytania · łącznie: <strong style="color:#5B8CDB">${readDaysCount}</strong></span>
+          <span style="display:flex;align-items:center;gap:5px">${svgIcon('film','#7B5EA7',12)} W tym roku: <strong style="color:#7B5EA7">${thisYearWatchDays}</strong> dni oglądania · łącznie: <strong style="color:#5B8CDB">${watchDaysCount}</strong></span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;font-size:0.65rem;color:#8E8E93;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:#27AE60;display:inline-block"></span>Czytanie</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:#7B5EA7;display:inline-block"></span>Oglądanie</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="font-size:0.7rem">📚</span>Książka</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="font-size:0.7rem">🎬</span>Film</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="font-size:0.7rem">📺</span>Serial</span>
+      </div>
+    </div>`;
+
+  // reuse renderCal but target new elements
+  renderCalForScreen(booksFinishedDates, filmsFinishedDates, serialsFinishedDates);
+}
+
+function renderCalForScreen(booksFinishedDates, filmsFinishedDates, serialsFinishedDates) {
+  const done = db.filter(e=>e.status==='done');
+  if (!booksFinishedDates)   booksFinishedDates   = done.filter(e=>e.cat==='book'  &&e.date).map(e=>e.date);
+  if (!filmsFinishedDates)   filmsFinishedDates   = done.filter(e=>e.cat==='film'  &&e.date).map(e=>e.date);
+  if (!serialsFinishedDates) serialsFinishedDates = done.filter(e=>e.cat==='serial'&&e.date).map(e=>e.date);
+
+  const {year,month} = calView;
+  const labelEl    = document.getElementById('calLabel2');
+  const gridEl     = document.getElementById('calGrid2');
+  const pickerReadEl  = document.getElementById('dayPickerRead2');
+  const pickerWatchEl = document.getElementById('dayPickerWatch2');
+  if (!labelEl) return;
+
+  labelEl.textContent = `${MONTHS_PL[month]} ${year}`;
+
+  const firstDay = new Date(year,month,1).getDay();
+  const offset   = (firstDay+6)%7;
+  const daysInMonth = new Date(year,month+1,0).getDate();
+  const today = new Date();
+
+  const booksOnDay={}, filmsOnDay={}, serialsOnDay={};
+  [[booksFinishedDates,booksOnDay],[filmsFinishedDates,filmsOnDay],[serialsFinishedDates,serialsOnDay]].forEach(([dates,obj])=>{
+    dates.forEach(iso=>{ const d=new Date(iso); if(d.getFullYear()===year&&d.getMonth()===month){ const k=d.getDate(); obj[k]=(obj[k]||0)+1; } });
+  });
+
+  let html = `<div class="cal-grid-header">${DAYS_PL.map(d=>`<div class="cal-day-name">${d}</div>`).join('')}</div><div class="cal-grid">`;
+  for(let i=0;i<offset;i++) html+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const didRead=!!readLog[key], didWatch=!!watchLog[key];
+    const books=booksOnDay[d]||0, films=filmsOnDay[d]||0, serials=serialsOnDay[d]||0;
+    const hasMedia=books||films||serials;
+    const isToday=today.getFullYear()===year&&today.getMonth()===month&&today.getDate()===d;
+    let bg, border;
+    if(didRead&&didWatch){bg='linear-gradient(135deg,#27AE60 50%,#7B5EA7 50%)';border='1.5px solid transparent';}
+    else if(didRead) {bg='#27AE60';border='1.5px solid transparent';}
+    else if(didWatch){bg='#7B5EA7';border='1.5px solid transparent';}
+    else if(isToday) {bg='#E8F4FF';border='1.5px solid #5B8CDB';}
+    else             {bg='#F5F5F5';border='1.5px solid transparent';}
+    const numColor=(didRead||didWatch)?'white':isToday?'#5B8CDB':'#4A4A4F';
+    const dots=[books?'📚':'',films?'🎬':'',serials?'📺':''].filter(Boolean).join('');
+    html+=`<div class="cal-cell" style="background:${bg};border:${border}">
+      <div class="cal-cell-num" style="color:${numColor};font-weight:${isToday?700:400}">${d}</div>
+      ${hasMedia?`<div class="cal-book-dot">${dots}</div>`:''}
+    </div>`;
+  }
+  html+='</div>';
+  gridEl.innerHTML=html;
+
+  let rHtml='',wHtml='';
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const ar=!!readLog[key],aw=!!watchLog[key];
+    rHtml+=`<button class="day-btn" onclick="toggleReadDay('${key}');renderCalendarScreen()" style="background:${ar?'#27AE60':'#E5E5EA'};color:${ar?'white':'#8E8E93'}">${d}</button>`;
+    wHtml+=`<button class="day-btn" onclick="toggleWatchDay('${key}');renderCalendarScreen()" style="background:${aw?'#7B5EA7':'#E5E5EA'};color:${aw?'white':'#8E8E93'}">${d}</button>`;
+  }
+  pickerReadEl.innerHTML=rHtml;
+  pickerWatchEl.innerHTML=wHtml;
+}
+
+
 function renderStats() {
   const done = db.filter(e=>e.status==='done');
   const want = db.filter(e=>e.status==='want');
@@ -642,11 +901,13 @@ function renderStats() {
     </div>`;
 
   document.getElementById('stats-content').innerHTML = `
+    <div style="padding:0 16px;display:flex;flex-direction:column;gap:12px;padding-bottom:20px">
+
     <!-- challenge -->
-    <div class="card" style="margin:0 16px">
+    <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div>
-          <div style="font-size:0.95rem;font-weight:700;color:#4A4A4F">${svgIcon('trophy','#E8736C',16)} Wyzwanie ${thisYear}</div>
+          <div style="font-size:0.95rem;font-weight:700;color:#4A4A4F;display:flex;align-items:center;gap:6px">${svgIcon('trophy','#E8736C',16)} Wyzwanie ${thisYear}</div>
           <div style="font-size:0.72rem;color:#8E8E93;margin-top:2px">${booksThisYear} z ${BOOK_GOAL} książek</div>
         </div>
         <div style="font-size:1.6rem;font-weight:700;color:${pct>=100?'#27AE60':'#E8736C'}">${pct}%</div>
@@ -656,38 +917,8 @@ function renderStats() {
       </div>
     </div>
 
-    <!-- reading calendar -->
-    <div class="card" style="margin:12px 16px 0">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="font-size:0.95rem;font-weight:700;color:#4A4A4F">${svgIcon('calendar','#4A4A4F',16)} Kalendarz czytania</div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <button onclick="calPrev()" style="background:none;border:none;color:#5B8CDB;font-size:1.1rem;padding:0 4px">‹</button>
-          <span id="calLabel" style="font-size:0.78rem;font-weight:600;color:#3C3C43;min-width:90px;text-align:center"></span>
-          <button onclick="calNext()" style="background:none;border:none;color:#5B8CDB;font-size:1.1rem;padding:0 4px">›</button>
-        </div>
-      </div>
-      <div id="calGrid"></div>
-      <div style="margin-top:12px;padding:10px 12px;background:#F9F9F9;border-radius:10px">
-        <div style="font-size:0.75rem;color:#8E8E93;margin-bottom:6px;display:flex;align-items:center;gap:5px">${svgIcon('book','#27AE60',14)} Zaznacz dni czytania:</div>
-        <div class="day-picker" id="dayPickerRead"></div>
-        <div style="font-size:0.75rem;color:#8E8E93;margin:10px 0 6px;display:flex;align-items:center;gap:5px">${svgIcon('film','#7B5EA7',14)} Zaznacz dni oglądania:</div>
-        <div class="day-picker" id="dayPickerWatch"></div>
-        <div style="font-size:0.7rem;color:#8E8E93;margin-top:8px;display:flex;flex-direction:column;gap:3px">
-          <span style="display:flex;align-items:center;gap:5px">${svgIcon('book','#27AE60',12)} Dni czytania w tym roku: <strong style="color:#27AE60">${thisYearReadDays}</strong> &nbsp;·&nbsp; łącznie: <strong style="color:#5B8CDB">${readDaysCount}</strong></span>
-          <span style="display:flex;align-items:center;gap:5px">${svgIcon('film','#7B5EA7',12)} Dni oglądania w tym roku: <strong style="color:#27AE60">${thisYearWatchDays}</strong> &nbsp;·&nbsp; łącznie: <strong style="color:#5B8CDB">${watchDaysCount}</strong></span>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:10px;font-size:0.65rem;color:#8E8E93;flex-wrap:wrap">
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:#27AE60;display:inline-block"></span>Czytanie</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;background:#7B5EA7;display:inline-block"></span>Oglądanie</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style='line-height:0'>${svgIcon('book','#E8736C',12)}</span>Książka</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style='line-height:0'>${svgIcon('film','#5B8CDB',12)}</span>Film</span>
-        <span style="display:flex;align-items:center;gap:4px"><span style='line-height:0'>${svgIcon('serial','#6BBF8C',12)}</span>Serial</span>
-      </div>
-    </div>
-
     <!-- stat tiles -->
-    <div class="stats-grid" style="margin-top:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="stats-tile"><div class="stats-tile-n" style="color:#27AE60">${done.length}</div><div class="stats-tile-l">Ukończone</div></div>
       <div class="stats-tile"><div class="stats-tile-n" style="color:#E67E22">${want.length}</div><div class="stats-tile-l">Na liście</div></div>
       <div class="stats-tile"><div class="stats-tile-n" style="color:#FFB800">${avg}</div><div class="stats-tile-l">Śr. ocena ★</div></div>
@@ -695,23 +926,24 @@ function renderStats() {
     </div>
 
     <!-- category bars -->
-    <div class="card" style="margin:12px 16px 0">
+    <div class="card">
       <div style="font-size:1rem;font-weight:700;color:#4A4A4F;margin-bottom:14px">Kategorie</div>
       ${barRow('Książki',cnt.book,maxCat,'#E8736C')}
       ${barRow('Filmy',cnt.film,maxCat,'#5B8CDB')}
       ${barRow('Seriale',cnt.serial,maxCat,'#6BBF8C')}
     </div>
 
-    ${rated.length?`<div class="card" style="margin:12px 16px 0">
+    ${rated.length?`<div class="card">
       <div style="font-size:1rem;font-weight:700;color:#4A4A4F;margin-bottom:14px">Oceny</div>
       ${[5,4,3,2,1].map(n=>barRow('★'.repeat(n),rd[n],mR,'#FFB800')).join('')}
     </div>`:''}
 
-    ${topTags.length?`<div class="card" style="margin:12px 16px 0">
+    ${topTags.length?`<div class="card">
       <div style="font-size:1rem;font-weight:700;color:#4A4A4F;margin-bottom:12px">Popularne tagi</div>
       <div class="tags-cloud">${topTags.map(([t,n])=>`<div class="tag-chip">#${esc(t)} <span style="color:#5B8CDB;font-weight:600">×${n}</span></div>`).join('')}</div>
     </div>`:''}
-  `;
+
+    </div>`;
 
   renderCal(booksFinishedDates, filmsFinishedDates, serialsFinishedDates);
 }
@@ -1007,19 +1239,19 @@ function saveEntry() {
 
 // ── INIT ──────────────────────────────────────────────
 // Inject SVG into static elements
-document.getElementById('bnav-ico-home').innerHTML  = svgIcon('library','#4A4A4F',22);
-document.getElementById('bnav-ico-stats').innerHTML = svgIcon('chart','#8E8E93',22);
+document.getElementById('bnav-ico-home').innerHTML     = svgIcon('library',    '#4A4A4F', 22);
+document.getElementById('bnav-ico-calendar').innerHTML = svgIcon('calendarNav','#8E8E93', 22);
+document.getElementById('bnav-ico-stats').innerHTML    = svgIcon('chart',      '#8E8E93', 22);
+document.getElementById('homeSearchBtn').innerHTML     = svgIcon('search',     '#8E8E93', 17);
+document.getElementById('catSearchBtn').innerHTML      = svgIcon('search',     '#8E8E93', 17);
+document.getElementById('searchIconInInput').innerHTML = svgIcon('search',     '#8E8E93', 16);
 document.getElementById('catopt-book-ico').innerHTML   = svgIcon('book',  CAT_META.book.color,  20);
 document.getElementById('catopt-film-ico').innerHTML   = svgIcon('film',  CAT_META.film.color,  20);
 document.getElementById('catopt-serial-ico').innerHTML = svgIcon('serial',CAT_META.serial.color,20);
 
 // Update bnav active color on nav change
 const _origGoTo = goTo;
-function updateNavIcons(screen) {
-  const homeActive = screen==='home'||['book','film','serial'].includes(screen);
-  document.getElementById('bnav-ico-home').innerHTML  = svgIcon('library', homeActive?'#4A4A4F':'#8E8E93', 22);
-  document.getElementById('bnav-ico-stats').innerHTML = svgIcon('chart', screen==='stats'?'#4A4A4F':'#8E8E93', 22);
-}
+function updateNavIcons_old_removed() {}
 
 renderHome();
 updateNavIcons('home');
